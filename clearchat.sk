@@ -4,4 +4,4 @@ command /clearchat:
     permission message: No permission
     trigger:
         broadcast formatted nl repeated 1000 times
-        send "&cChat has been cleared by &e%player%"
+        broadcast "&cChat has been cleared by &e%player%"
