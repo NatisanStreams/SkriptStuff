@@ -3,6 +3,5 @@ command /clearchat:
     permission: skript.clearchat
     permission message: No permission
     trigger:
-        loop 100 times:
-            send ""
+        broadcast formatted nl repeated 1000 times
         send "&cChat has been cleared by &e%player%"
