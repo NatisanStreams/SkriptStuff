@@ -4,7 +4,7 @@
 # This skript adds a simple economy system with commands like /eco and /ecoadmin (feel free to change the name of the commands as you see fit)
 
 # REQUIRED ADDONS:
-#   PlaceholderAPI (IF YOU WANT THE PLACEHOLDERS, if not, delete the placeholders lines)
+#   Skript-Placeholders (IF YOU WANT THE PLACEHOLDERS, if not, delete the placeholders lines)
 #   SkBee
 
 
