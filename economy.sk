@@ -1,128 +1,203 @@
-# MADE BY NATISAN (optional support donation: https://ko-fi.com/natisan)
+# MADE BY NATISAN (OPTIONAL DONATION LINK: https://ko-fi.com/natisan)
+# Recoded: 12/01/2026
 
-# Economy skript
-# This skript adds a simple economy system with commands like /eco and /ecoadmin (feel free to change the name of the commands as you see fit)
+# ECONOMY SKRIPT
+# Adds various economy functions such as:
+# Paying, default balances, admin commands
 
-# REQUIRED ADDONS:
-#   Skript-Placeholders (IF YOU WANT THE PLACEHOLDERS, if not, delete the placeholders lines)
-#   SkBee
+# FEEL FREE TO CHANGE THE COMMAND NAMES AS YOU WISH
 
+# Required Addons:
+# Skript-Placeholders (if you want placeholders, if not, delete the placeholders lines)
+# SkBee
 
 placeholderapi placeholder with the prefix "skript":
     if the identifier is "balance":
         set the result to {balance::%player's uuid%}
-
-
-function getBalance(p: offlineplayer):: integer:
+    
+function getBalance(p: offlineplayer) :: integer:
     return {balance::%{_p}'s uuid%}
 
 function addBalance(p: offlineplayer, amount: integer):
-    add {_amount} to {balance::%{_p}'s uuid%}
+    add {amount} to {balance::%{_p}'s uuid%}
 
 function removeBalance(p: offlineplayer, amount: integer):
-    remove {_amount} from {balance::%{_p}'s uuid%}
+    remove {amount} from {balance::%{_p}'s uuid%}
 
-function setBalance(p: offlineplayer, amount: integer):
-    set {balance::%{_p}'s uuid%} to {_amount}
+function setBalance(p: offlineplayer, amount: interger):
+    set {balance::%{_p}'s uuid%} to {amount}
 
 
 options:
-    starter_balance: 0 # the amount of coins you want people to start with 
-    name: <white>Coins # The name of the currency
-    prefix: <white>[<yellow>ECONOMY<white>] # the prefix that shows up for messages
-    no: play sound "entity.villager.no" with volume 0.5 # OPTIONAL error sound (delete if you dont want it and delete the "{@no} to player" lines)
-    baltopcount: 10 # The amount of players to show in /baltop
+    starter_balance: 0
+    # ^ the initial balance that players will start with
+    # or the balance they'll return to if they get eco resetted by admins
 
-# Detects if the player has a balance set, if not, it'll give them the starter balance (mainly for first joins)
+    name: <white>Coins
+    # ^ the name of the currency, feel free to change it
+    
+    prefix: <yellow>[<white>Economy<yellow>]
+    # ^ the prefix that shows up for messages
+    
+    no: play sound "entity.villager.no" with volume 0.5
+    # ^ OPTIONAL
+    # Used as the ERROR sound
+    # if you don't want it, feel free to remove all the
+    # "{@no} to player" lines
+
+    yes: play sound "entity.experience_orb.pickup" with volume 0.5
+    
+    baltop_amount: 10
+    # ^ The amount of players that will show up on the baltop command
+
 on join:
     if {balance::%player's uuid%} is not set:
         set {balance::%player's uuid%} to {@starter_balance}
+# ^ This detects the players join
+# and if the balance isnt set (eg. first time joining)
+# then it will set the balance to whatever you choose as the starting balance
 
 
-# Commands:
-# /eco balance - shows the player's balance
-# /eco pay <player> <amount> - pays another player
-command /eco [<text>] [<player>] [<integer>]:
+
+# COMMAND LIST:
+# /skripteco balance:
+# ^ Sends the player a message with their balance
+
+# /skripteco pay <player> <amount>:
+# ^ Allows the player to send money to others
+command /skripteco [<text>] [<player>] [<integer>]:
     trigger:
         if arg-1 is "balance":
-            send "{@prefix} <white>Your balance is %{balance::%player's uuid%}% {@name}" to player
+            send "{@prefix} <white>Your balance is <yellow>%{balance::%player's uuid%}%" to player
         if arg-1 is "pay":
-            if arg-2 is set:
-                if arg-3 is set:
-                    if arg-3 is less than or equal to {balance::%player's uuid%}:
-                        if arg-3 is more than 0:
-                            removeBalance(player, arg-3)
-                            addBalance(arg-2, arg-3)
-                            send "{@prefix} <white>You have sent <yellow>%arg-3% {@name} <white>to <cyan>%arg-2%" to player
-                            send "{@prefix} <white>You have received <yellow>%arg-3% {@name} <white>from <cyan>%player%" to arg-2
-                            play sound "entity.experience_orb.pickup" with volume 0.5 to player
-                            play sound "entity.experence_orb.pickup" with volume 0.5 to arg-2
-                        else:
-                            send "{@prefix} <red>You cannot send negative numbers" to player
-                            {@no} to player
-                    else:
-                        send "{@prefix} <red>You don't have enough money to send this much" to player
-                        {@no} to player
+            if arg-2 is not set:
+            # ^ Checks if the 2nd argument (player) isn't set, if it isn't set, it will send the error
+                send "{@prefix} <red>Please set a player" to player
+                {@no} to player
+                stop
+            if arg-3 is not set:
+            # ^ Checks if the 3rd argument (amount) isn't set, if it isn't set, it will send an error
+                send "{@prefix} <red>Please set an amount" to player
+                {@no} to player
+                stop
+            if arg-3 > {balance::%player's uuid%}:
+            # ^ Checks if the amount is more than the player's balance
+            # if the amount is more than the players balance amount, it will error
+            # this prevents people from sending money they don't have
+                send "{@prefix} <red>You don't have enough money for that" to player
+                {@no} to player
+                stop
+            if arg-3 is <= 0:
+            # ^ Checks if the amount if less than or equal to 0, if it is, it won't allow
+            # This just prevents people from sending negative amounts
+                send "{@prefix} <red>You can't send negative amounts" to player
+                {@no} to player
+                stop
+            else:
+                removeBalance(player, arg-3)
+                addBalance(arg-2, arg-3)
+                send "{@prefix} <white>You have sent <yellow>%arg-3% <name> <white>to <cyan>%arg-2%" to player
+                send "{@prefix} <white> You have received <yellow>%arg-3% <name> <white>from <cyan>%player%" to arg-2
+                {@yes} to player
+                {@yes} to arg-2
 
-on tab complete of "eco":
+
+
+on tab complete of "skripteco":
     set tab completion for position 1 to "balance", "pay"
 
-# Admin commands:
-# /ecoadmin add <player> <amount> - adds money to a player's balance
-# /ecoadmin remove <player> <amount> - removes money from a player's balance
-# /ecoadmin set <player> <amount> - sets a player's balance
-# /ecoadmin reset <player> - resets a player's balance to the starter balance option
-command /ecoadmin [<text>] [<player>] [<integer>]:
-    permission: eco.admin
-    trigger:
-        if arg-1 is "add":
-            if arg-2 is set:
-                if arg-3 is set:
-                    if arg-3 > 0:
-                        addBalance(arg-2, arg-3)
-                        send "{@prefix} Added <yellow>10 {@name} <white>to <cyan>%arg-2%'s <white>balance"
-                    else:
-                        send "{@prefix} <red>You can't add a negative number"
-                        {@no} to player
-                else:
-                    send "{@prefix} <red>Please set an amount"
-                    {@no} to player
-        if arg-1 is "set":
-            if arg-2 is set:
-                if arg-3 is set:
-                    setBalance(arg-2, arg-3)
-                    send "{@prefix} You have set <cyan>%arg-2%'s <white>balance to <yellow>%arg-3% {@name}"
-                else:
-                    send "{@prefix} <red>Please set an amount"
-                    {@no} to player
-        if arg-1 is "remove":
-            if arg-2 is set:
-                if arg-3 is set:
-                    if arg-3 > 0:
-                        removeBalance(arg-2, arg-3)
-                        send "{@prefix} You have removed <yellow>%arg-3% {@name} <white>from <cyan>%arg-2%'s <white>balance"
-                    else:
-                        send "{@prefix} <red>You can't remove a negative number"
-                        {@no} to player
-                else:
-                    send "{@prefix} <red>Please set an amount"
-                    {@no} to player
-        if arg-1 is "reset":
-            if arg-2 is set:
-                set {balance::%arg-2's uuid%} to {@starter_balance}
-                send "{@prefix} You have reset <cyan>%arg-2%'s <white>balance"
-            else:
-                send "{@prefix} <red>Please set a player"
-                {@no} to player
 
-on tab complete of "ecoadmin":
-    set tab completion for position 1 to "add", "remove", "set", "reset"
-                
-
-# /baltop - shows the top balances - edit the "baltopcount" option to change how many players show
 command /baltop:
     trigger:
         set {_sorted::*} to sorted indices of {balance::*} in descending order
-        send "<cyan>---Baltop---"
-        loop first {@baltopcount} elements of {_sorted::*}:
-            send "<gold>%loop-iteration%. <white>%offlineplayer(loop-value)% <gray>- <lime>$%{balance::%loop-value%}%"
+        send "<cyan>--- BALTOP ---" to player
+        loop first {@baltop_amount} elements of {_sorted::*}:
+            send "<gold>%loop-iteration%. <white>%offlineplayer(loop-value)% <gray>- <lime>$%{balance::%loop-value%}%" to player
+        {@yes} to player
+
+
+# Admin commands:
+# /skriptecoadmin add <player> <amount>:
+# ^ Adds a money to a player's balance
+
+# /skriptecoadmin remove <player> <amount>:
+# ^ Removes a money from a player's balance
+
+# /skriptecoadmin set <player> <amount>:
+# ^ Sets the players balance to an amount
+
+# /skriptecoadmin reset <player>:
+# ^ Resets the player's balance to the "starter_balance" option
+
+
+
+command /skriptecoadmin [<text>] [<player>] [<integer>]:
+    permission: skripteco.admin
+    permission message: {@prefix} <red>You don't have the permission for that
+    trigger:
+        if arg-1 is "add":
+            if arg-2 is not set:
+                send "{@prefix} <red>Please set a player" to player
+                {@no} to player
+                stop
+            if arg-3 is not set:
+                send "{@prefix} <red>Please set an amount" to player
+                {@no} to player
+                stop
+            if arg-3 < 0:
+                send "{@prefix} <red>Please set a positive amount" to player
+                {@no} to player
+                stop
+            else:
+                addBalance(arg-2, arg-3)
+                send "{@prefix} <lime>You have added <yellow>%arg-3% {@name} <lime>to <cyan>%arg-2%'s <lime>balance" to player
+                {@yes} to player
+            
+        if arg-1 is "remove":
+            if arg-2 is not set:
+                send "{@prefix} <Red>Please set a player" to player
+                {@no} to player
+                stop
+            if arg-3 is not set:
+                send "{@prefix} <Red>Please set an amount" to player
+                {@no} to player
+                stop
+            if arg-3 < 0:
+                send "{@prefix} <red>Please set a positive amount" to player
+                {@no} to player
+                stop
+            else:
+                removeBalance(arg-2, arg-3)
+                send "{@prefix} <lime>You have removed <yellow>%arg-3% {@name} <lime>from <cyan>%arg-2%'s <lime>balance" to player
+                {@yes} to player
+        
+        if arg-1 is "set":
+            if arg-2 is not set:
+                send "{@prefix} <red>Please set a player" to player
+                {@no} to player
+                stop
+            if arg-3 is not set:
+                send "{@prefix} <Red>Please set an amount" to player
+                {@no} to player
+                stop
+            if arg-3 < 0:
+                send "{@prefix} <red>Please set an amount higher than 0" to player
+                {@no} to player
+                stop
+            else:
+                setBalance(arg-2, arg-3)
+                send "{@prefix} <lime>You have set <cyan>%arg-2%'s <lime>balance to <yellow>%arg-3% {@name}" to player
+                {@yes} to player
+
+        if arg-1 is "reset":
+            if arg-2 is not set:
+                send "{@prefix} <red>Please set a player" to player
+                {@no} to player
+                stop
+            else:
+                set {balance::%arg-2%'s uuid} to {@starter_balance}
+                send "{@prefix} <lime>You have <red>reset <lime>the balance of <cyan>%arg-2% to <yellow>{@starter_balance} {@name}" to player
+                {@yes} to player
+
+on tag complete of "skriptecoadmin":
+    set tab completion for position 1 to "add", "remove", "set", "reset"
